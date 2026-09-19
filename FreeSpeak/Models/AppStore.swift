@@ -195,10 +195,15 @@ final class AppStore {
             notice =
               "Cleanup wasn't available. Your original transcript is safe. \(error.localizedDescription)"
           }
-          // Cancelling optional cleanup must not discard completed speech recognition.
+          // Keep completed recognition visible, but cancellation must not publish it
+          // to the keyboard, save history, or consume the audio needed for a retry.
           if Task.isCancelled {
-            text = raw
-            notice = "Cleanup cancelled. Your original transcript is ready."
+            latestTranscript = Transcript(
+              text: raw, original: raw, modeName: mode.name,
+              providerName: settings.speechProvider.name, duration: duration)
+            notice = "Cleanup cancelled. Your original transcript and recording are available here."
+            phase = .idle
+            return
           }
         } else {
           try Task.checkCancellation()

@@ -81,7 +81,9 @@ enum KeychainStore {
 @MainActor struct KeyboardInbox {
   static var shouldFail = false
   static var clearCount = 0
+  static var publishCount = 0
   func publish(id: UUID, text: String, createdAt: Date) throws {
+    Self.publishCount += 1
     if Self.shouldFail { throw CocoaError(.fileWriteNoPermission) }
   }
   func clear() throws { Self.clearCount += 1 }

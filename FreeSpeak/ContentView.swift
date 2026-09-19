@@ -46,15 +46,15 @@ struct DictateView: View {
               VStack(alignment: .leading, spacing: 12) {
                 Label("Let's try that again", systemImage: "exclamationmark.circle").font(.headline)
                 Text(message).font(.subheadline).foregroundStyle(.secondary)
-                if store.hasPendingAudio && store.phase == .idle {
-                  Button("Retry saved recording", systemImage: "arrow.clockwise") {
-                    store.processPendingAudio()
-                  }
-                }
               }
             }
           }
           if let notice = store.notice { Text(notice).font(.footnote).foregroundStyle(.secondary) }
+          if store.hasPendingAudio && store.phase == .idle {
+            Button("Retry saved recording", systemImage: "arrow.clockwise") {
+              store.processPendingAudio()
+            }
+          }
           if let transcript = store.latestTranscript {
             Surface {
               VStack(alignment: .leading, spacing: 16) {
@@ -88,9 +88,7 @@ struct DictateView: View {
           recentSection
           HStack(spacing: 6) {
             Image(systemName: "lock.shield")
-            Text(
-              "\(store.saved.settings.speechProvider.isLocal ? "Audio stays on this iPhone" : "Audio is sent to " + store.saved.settings.speechProvider.name). \(store.saved.settings.cleanupProvider == .none ? "No cloud cleanup." : "Text cleanup: " + store.saved.settings.cleanupProvider.name + ".")"
-            )
+            Text(privacySummary)
           }
           .font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity)
         }
@@ -110,6 +108,22 @@ struct DictateView: View {
         }
       }
     }
+  }
+
+  private var privacySummary: String {
+    let settings = store.saved.settings
+    let speech =
+      settings.speechProvider.isLocal
+      ? "Audio stays on this iPhone."
+      : "Audio and vocabulary are sent to \(settings.speechProvider.name) for transcription."
+    guard settings.cleanupProvider != .none, !store.selectedMode.instructions.isEmpty else {
+      return "\(speech) No text is sent for cleanup."
+    }
+    if settings.cleanupProvider.isCloud {
+      return
+        "\(speech) Transcript text, mode instructions, and vocabulary are sent to \(settings.cleanupProvider.name) for cleanup."
+    }
+    return "\(speech) Text cleanup runs on this iPhone."
   }
 
   private var header: some View {

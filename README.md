@@ -39,7 +39,7 @@ This baseline requires a manual app switch. The keyboard does not record, activa
 
 ## Implemented scope
 
-The app records audio, imports files up to 25 MB, transcribes with the selected provider, and optionally cleans the result. Natural, Message, Notes, and Verbatim modes can be edited; custom modes can be added. Settings include language, vocabulary hints, provider keys, cleanup model IDs, and local transcript history. Results retain the original transcription when cleanup fails.
+The app records audio, imports files up to 25 MB, transcribes with the selected provider, and optionally cleans the result. Natural, Message, Notes, and Verbatim modes can be edited; custom modes can be added. Settings include language, vocabulary hints, provider keys, cleanup model IDs, and local transcript history. Results retain the original transcription when cleanup fails. Cancelling cleanup keeps the original visible in the app and retains the recording for an explicit retry; it does not publish to the keyboard or save a history entry.
 
 | Engine | Stage and runtime | Current limits |
 | --- | --- | --- |

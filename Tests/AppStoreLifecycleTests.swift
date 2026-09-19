@@ -71,7 +71,7 @@ import Foundation
       "validated mutable settings instead of captured request")
 
     let cleanup = store("cleanup")
-    KeyboardInbox.shouldFail = true
+    let priorPublishes = KeyboardInbox.publishCount
     cleanup.saved.settings.cleanupProvider = .openAI
     cleanup.importAudio(audio)
     try await settled(cleanup, phase: .cleaning)
@@ -79,9 +79,24 @@ import Foundation
     try await settled(cleanup)
     precondition(
       cleanup.latestTranscript?.text == "original speech", "cleanup cancellation lost ASR result")
-    precondition(!cleanup.hasPendingAudio)
+    precondition(cleanup.hasPendingAudio, "cleanup cancellation deleted retry audio")
     precondition(cleanup.notice?.contains("Cleanup cancelled") == true)
-    precondition(cleanup.notice?.contains("Keyboard sharing") == true)
+    precondition(
+      KeyboardInbox.publishCount == priorPublishes, "cancelled cleanup published to keyboard")
+    precondition(cleanup.saved.transcripts.isEmpty, "cancelled cleanup saved history")
+    cleanup.saved.settings.cleanupProvider = .none
+    cleanup.processPendingAudio()
+    try await settled(cleanup)
+    precondition(!cleanup.hasPendingAudio)
+    precondition(KeyboardInbox.publishCount == priorPublishes + 1, "explicit retry did not publish")
+    precondition(cleanup.saved.transcripts.count == 1)
+
+    let sharingFailure = store("sharing-failure")
+    KeyboardInbox.shouldFail = true
+    sharingFailure.importAudio(audio)
+    try await settled(sharingFailure)
+    precondition(sharingFailure.latestTranscript?.text == "original speech")
+    precondition(sharingFailure.notice?.contains("Keyboard sharing") == true)
     KeyboardInbox.shouldFail = false
 
     let empty = store("empty")
