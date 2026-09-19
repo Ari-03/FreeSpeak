@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct FreeSpeakApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  @State private var store = AppStore()
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+        .environment(store)
     }
+  }
 }
